@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
 import React from 'react';
+import {Image, Text} from 'react-native';
 import {List, SwipeAction} from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 
@@ -50,6 +51,13 @@ export default function TaskItem(props) {
       style: {backgroundColor: 'white', color: '#e74c3c', fontSize: 15},
     },
   ];
+  const date = new Date();
+  const defaultD =
+    date.getDate() +
+    '/' +
+    (date.getMonth() + 1) +
+    '/' +
+    (date.getYear() + 1900);
   return (
     <SwipeAction
       autoClose
@@ -57,7 +65,28 @@ export default function TaskItem(props) {
       right={right}
       onOpen={() => console.log('open')}
       onClose={() => console.log('close')}>
-      <List.Item extra={props.extra}>{props.name}</List.Item>
+      <List.Item
+        style={{
+          padding: 2,
+        }}
+        extra={
+          props.assign &&
+          props.assign.mAssigns.map(item => (
+            <Image
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 25,
+                borderColor: 'green',
+                borderWidth: 2,
+              }}
+              source={{uri: item.mID.mAvatar}}
+            />
+          ))
+        }>
+        {props.name}
+        <Text style={{color: 'gray', fontSize: 13}}>{defaultD}</Text>
+      </List.Item>
     </SwipeAction>
   );
 }

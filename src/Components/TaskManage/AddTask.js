@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import {DatePicker, Button, Picker, Label} from 'native-base';
 import ImagePicker from 'react-native-image-picker';
@@ -39,6 +40,11 @@ export default function AddTask({route, navigation}) {
   const [loading, setLoading] = useState(null);
   // let checkMember = [];
 
+  const [isAll, setIsAll] = useState(false);
+  const toggleSwitch = () => setIsAll(previousState => !previousState);
+  const [isMoreTwo, setIsMoreTwo] = useState(false);
+  const [noti, setNoti] = useState('');
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -53,27 +59,18 @@ export default function AddTask({route, navigation}) {
 
   const handleCheckMember = index => {
     const i = keyMember.indexOf(index);
-    // console.log(i);
     if (i !== -1) {
-      //Member.splice(i, 1);
       const t = keyMember;
       t.splice(i, 1);
       setkeyMember([...t]);
-      // console.log('checkM: ' + checkMember);
-      // console.log('checkKeyMember: ' + keyMember);
     } else {
       setkeyMember([...keyMember, index]);
-      // console.log('checkKeyMember: ' + keyMember);
-      // checkMember.push(index);
     }
   };
   const handleCheckCat = index => {
-    // sconst i = keyCat.indexOf(index);
     setkeyCat(index);
   };
-  // console.log('checkKeyMember: ' + keyMember);
-  // console.log('checkM: ' + checkMember);
-  //list member demo
+  //list member
   const getlistMember = () => {
     return RNFetchBlob.fetch(
       'GET',
@@ -106,6 +103,13 @@ export default function AddTask({route, navigation}) {
     getlistCat();
     setkeyCat('5e7f601c1c9d440000af791c');
   }, []);
+  useEffect(() => {
+    if (keyMember.length >= 2) {
+      setIsMoreTwo(true);
+    } else {
+      setIsMoreTwo(false);
+    }
+  }, [keyMember.length]);
   // Add your Cloudinary name here
   const YOUR_CLOUDINARY_NAME = 'datn22020';
 
@@ -165,13 +169,14 @@ export default function AddTask({route, navigation}) {
       photo: image.uri,
       assign: {
         mAssigns: keyMember,
-        isAll: true,
+        isAll: isAll,
       },
       date: null,
       tcID: keyCat,
       time: select,
       points: selectpts,
     };
+    console.log(data);
     RNFetchBlob.fetch(
       'POST',
       'https://househelperapp-api.herokuapp.com/add-task',
@@ -184,9 +189,15 @@ export default function AddTask({route, navigation}) {
     ).then(res => {
       const t = res.json();
       console.log(t);
+      if (t.code === 2020) {
+        navigation.navigate('TaskList');
+        // setNoti('Add New Task Successfully!');
+      } else {
+        setNoti('Add New Task Failed!');
+      }
     });
   };
-  console.log(keyCat);
+  // console.log(keyCat);
   return (
     <View style={{paddingTop: 10}}>
       <ScrollView>
@@ -197,7 +208,10 @@ export default function AddTask({route, navigation}) {
                 style={{fontSize: 20, fontFamily: ''}}
                 placeholder="Task name"
                 defaultValue={name}
-                onChangeText={value => setName(value)}
+                onChangeText={value => {
+                  setName(value);
+                  setNoti('');
+                }}
               />
             </Flex>
           </Card>
@@ -275,49 +289,65 @@ export default function AddTask({route, navigation}) {
               <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
                 Assign
               </Text>
+              {isMoreTwo && (
+                <View style={{flex: 10}}>
+                  <Flex justify="end">
+                    <Text style={{color: 'green', fontSize: 14, marginLeft: 5}}>
+                      Do Together
+                    </Text>
+                    <Switch
+                      trackColor={{false: '#767577', true: '#green'}}
+                      thumbColor={isAll ? 'green' : '#f4f3f4'}
+                      ios_backgroundColor="#3e3e3e"
+                      onValueChange={toggleSwitch}
+                      value={isAll}
+                    />
+                  </Flex>
+                </View>
+              )}
             </Flex>
             {listMember === null ? (
               <View style={[styles.container, styles.horizontal]}>
                 <ActivityIndicator size="large" color="green" />
               </View>
             ) : (
-              <Flex justify="around" style={{marginTop: 5}}>
+              <Flex justify="around" style={{marginTop: 10}} wrap="wrap">
                 {listMember.map(item => (
-                  <Flex direction="column" wrap="wrap">
-                    <Flex.Item>
-                      <TouchableOpacity
-                        onPress={() => {
-                          handleCheckMember(item._id);
-                          // console.log('checkKeyMember: ' + keyMember);
-                        }}>
-                        <Image
-                          style={
-                            keyMember.indexOf(item._id) !== -1
-                              ? {
-                                  width: 50,
-                                  height: 50,
-                                  borderRadius: 25,
-                                  borderColor: 'green',
-                                  borderWidth: 2.5,
-                                }
-                              : {
-                                  width: 50,
-                                  height: 50,
-                                  borderRadius: 25,
-                                  borderColor: 'black',
-                                  borderWidth: 0.5,
-                                }
-                          }
-                          source={{uri: item.mAvatar}}
-                          id={item._id}
-                        />
-                      </TouchableOpacity>
-                    </Flex.Item>
-                    <Flex.Item>
+                  <Flex direction="column" style={{margin: 5}}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        handleCheckMember(item._id);
+                        setNoti('');
+                        // handleCheckMoreTwoMember();
+                        // console.log('checkKeyMember: ' + keyMember
+                      }}>
+                      <Image
+                        style={
+                          keyMember.indexOf(item._id) !== -1
+                            ? {
+                                width: 50,
+                                height: 50,
+                                borderRadius: 25,
+                                borderColor: 'green',
+                                borderWidth: 2.5,
+                              }
+                            : {
+                                width: 50,
+                                height: 50,
+                                borderRadius: 25,
+                                borderColor: 'black',
+                                borderWidth: 0.5,
+                              }
+                        }
+                        source={{uri: item.mAvatar}}
+                        id={item._id}
+                      />
+                    </TouchableOpacity>
+                    <View>
                       <Text numberOfLines={1} style={{width: 60}}>
                         {item.mName}
                       </Text>
-                    </Flex.Item>
+                    </View>
                   </Flex>
                 ))}
               </Flex>
@@ -339,13 +369,14 @@ export default function AddTask({route, navigation}) {
                 <ActivityIndicator size="large" color="green" />
               </View>
             ) : (
-              <Flex justify="around" style={{marginTop: 5}} wrap="wrap">
+              <Flex justify="around" style={{marginTop: 10}} wrap="wrap">
                 {listCat.map(item => (
                   <Flex direction="column" style={{margin: 5}}>
                     <TouchableOpacity
                       onPress={() => {
                         handleCheckCat(item._id);
                         // console.log('checkKeyMember: ' + keyMember);
+                        setNoti('');
                       }}>
                       <Image
                         style={
@@ -402,7 +433,10 @@ export default function AddTask({route, navigation}) {
                     color: 'green',
                     fontSize: 18,
                   }}
-                  onDateChange={date => setDueDate(date)}
+                  onDateChange={date => {
+                    setDueDate(date);
+                    setNoti('');
+                  }}
                   disabled={false}
                 />
               </Flex.Item>
@@ -460,10 +494,31 @@ export default function AddTask({route, navigation}) {
               }}
               placeholder="Write a note"
               defaultValue={note}
-              onChangeText={value => setNote(value)}
+              onChangeText={value => {
+                setNote(value);
+                setNoti('');
+              }}
               count={150}
             />
           </Card>
+          {/* {noti === 'Add New Task Successfully!' && (
+            <Flex
+              justify="center"
+              style={{backgroundColor: 'green', margin: 5, padding: 5}}>
+              <Text style={{color: 'white', height: 20, fontSize: 16}}>
+                {noti}
+              </Text>
+            </Flex>
+          )} */}
+          {noti === 'Add New Task Failed!' && (
+            <Flex
+              justify="center"
+              style={{backgroundColor: 'red', margin: 5, padding: 5}}>
+              <Text style={{color: 'white', height: 20, fontSize: 16}}>
+                {noti}
+              </Text>
+            </Flex>
+          )}
           <Button
             full
             success

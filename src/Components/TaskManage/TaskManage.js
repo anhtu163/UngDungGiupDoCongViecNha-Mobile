@@ -3,7 +3,7 @@
 import React, {Component} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {Icon, Button} from '@ant-design/react-native';
+import {Icon, Button, Flex} from '@ant-design/react-native';
 import {Text, View} from 'react-native';
 
 import AddTask from './AddTask';
@@ -23,7 +23,12 @@ export default class TaskManage extends Component {
             component={TaskList}
             options={({navigation}) => ({
               headerTitle: () => (
-                <Icon style={{color: 'green'}} size="lg" name="file-done" />
+                <Flex>
+                  <Icon style={{color: 'green'}} size="lg" name="file-done" />
+                  <Text style={{fontSize: 20, marginLeft: 10}}>
+                    Task Manage
+                  </Text>
+                </Flex>
               ),
               headerRight: () => (
                 <Button
