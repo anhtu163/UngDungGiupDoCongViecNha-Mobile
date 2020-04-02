@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import {List, Button} from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 import TaskItem from './TaskItem';
@@ -24,12 +24,9 @@ export default function TaskView(props) {
     });
   };
   useEffect(() => {
-    // Update the document title using the browser API
     getlist();
   }, []);
 
-  //const st = this.props;
-  // getlist();
   const styles = StyleSheet.create({
     container: {
       flex: 1,

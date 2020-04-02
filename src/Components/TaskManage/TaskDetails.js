@@ -10,6 +10,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import {DatePicker, Button, Picker, Label} from 'native-base';
 import ImagePicker from 'react-native-image-picker';
@@ -30,26 +32,40 @@ export default function TaskDetails({route, navigation}) {
   const {date} = route.params;
   const {note} = route.params;
   const {img} = route.params;
-  const {id} = route.params;
+  // const {id} = route.params;
   const {assign} = route.params;
   const {category} = route.params;
 
   const [image, setImage] = useState({
     uri: img,
   });
+  const [loading, setLoading] = useState(null);
   const [select, setSelect] = useState(time);
   const [selectpts, setSelectpts] = useState(point);
   const [selectdate, setSelectDate] = useState(date);
   const [_note, setNote] = useState(note);
   // check assign
   const [keyMember, setkeyMember] = useState([]);
-  const [listMember, setlistMember] = useState([]);
-  const [listCat, setlistCat] = useState([]);
+  const [listMember, setlistMember] = useState(null);
+  const [listCat, setlistCat] = useState(null);
   const [keyCat, setkeyCat] = useState(null);
   //isBoth
   const [isAll, setIsAll] = useState(false);
   const toggleSwitch = () => setIsAll(previousState => !previousState);
   // pla pla
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    horizontal: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      padding: 10,
+    },
+  });
+
   const defaultD =
     date.getDate() +
     '/' +
@@ -73,11 +89,13 @@ export default function TaskDetails({route, navigation}) {
       } else if (res.error) {
         console.log('Error', res.error);
       } else {
+        setLoading(false);
         uploadFile(res).then(async response => {
           let data = await response.json();
           setImage({
             uri: data.url,
           });
+          setLoading(true);
           console.log(data.url);
         });
       }
@@ -155,8 +173,11 @@ export default function TaskDetails({route, navigation}) {
       setkeyMember(t);
     }
     setkeyCat(category._id);
+    if (image.uri) {
+      setLoading(true);
+    }
   }, []);
-  console.log(point);
+  // console.log(loading);
   return (
     <View style={{paddingTop: 10}}>
       <ScrollView>
@@ -275,18 +296,85 @@ export default function TaskDetails({route, navigation}) {
                 />
               </View>
             </Flex>
-            <Flex justify="around" style={{marginTop: 5}}>
-              {listMember.map(item => (
-                <Flex direction="column" wrap="wrap">
-                  <Flex.Item>
+            {listMember === null ? (
+              <View style={[styles.container, styles.horizontal]}>
+                <ActivityIndicator size="large" color="green" />
+              </View>
+            ) : (
+              <Flex justify="around" style={{marginTop: 5}}>
+                {listMember.map(item => (
+                  <Flex direction="column" wrap="wrap">
+                    <Flex.Item>
+                      <TouchableOpacity
+                        onPress={() => {
+                          handleCheckMember(item._id);
+                          // console.log('checkKeyMember: ' + keyMember);
+                        }}>
+                        <Image
+                          style={
+                            keyMember.indexOf(item._id) !== -1
+                              ? {
+                                  width: 50,
+                                  height: 50,
+                                  borderRadius: 25,
+                                  borderColor: 'green',
+                                  borderWidth: 2.5,
+                                }
+                              : {
+                                  width: 50,
+                                  height: 50,
+                                  borderRadius: 25,
+                                  borderColor: 'black',
+                                  borderWidth: 0.5,
+                                }
+                          }
+                          source={{uri: item.mAvatar}}
+                          id={item._id}
+                        />
+                      </TouchableOpacity>
+                    </Flex.Item>
+                    <Flex.Item>
+                      <Text numberOfLines={1} style={{maxWidth: 55}}>
+                        {item.mName}
+                      </Text>
+                    </Flex.Item>
+                    {/* {keyMember.indexOf(item.id) !== -1 ? (
+                    <Icon name="check" color="green" />
+                  ) : (
+                    <Icon name="check" color="red" />
+                  )} */}
+                  </Flex>
+                ))}
+              </Flex>
+            )}
+          </Card>
+          <Card
+            style={{
+              padding: 10,
+              margin: 5,
+            }}>
+            <Flex>
+              <Icon name="tag" color="black" size="md" />
+              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
+                Category
+              </Text>
+            </Flex>
+            {listCat === null ? (
+              <View style={[styles.container, styles.horizontal]}>
+                <ActivityIndicator size="large" color="green" />
+              </View>
+            ) : (
+              <Flex justify="around" style={{marginTop: 5}} wrap="wrap">
+                {listCat.map(item => (
+                  <Flex direction="column" style={{margin: 5}}>
                     <TouchableOpacity
                       onPress={() => {
-                        handleCheckMember(item._id);
+                        handleCheckCat(item._id);
                         // console.log('checkKeyMember: ' + keyMember);
                       }}>
                       <Image
                         style={
-                          keyMember.indexOf(item._id) !== -1
+                          keyCat === item._id
                             ? {
                                 width: 50,
                                 height: 50,
@@ -302,74 +390,19 @@ export default function TaskDetails({route, navigation}) {
                                 borderWidth: 0.5,
                               }
                         }
-                        source={{uri: item.mAvatar}}
+                        source={{uri: item.image}}
                         id={item._id}
                       />
                     </TouchableOpacity>
-                  </Flex.Item>
-                  <Flex.Item>
-                    <Text numberOfLines={1} style={{width: 60}}>
-                      {item.mName}
-                    </Text>
-                  </Flex.Item>
-                  {/* {keyMember.indexOf(item.id) !== -1 ? (
-                    <Icon name="check" color="green" />
-                  ) : (
-                    <Icon name="check" color="red" />
-                  )} */}
-                </Flex>
-              ))}
-            </Flex>
-          </Card>
-          <Card
-            style={{
-              padding: 10,
-              margin: 5,
-            }}>
-            <Flex>
-              <Icon name="tag" color="black" size="md" />
-              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
-                Category
-              </Text>
-            </Flex>
-            <Flex justify="around" style={{marginTop: 5}} wrap="wrap">
-              {listCat.map(item => (
-                <Flex direction="column" style={{margin: 5}}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      handleCheckCat(item._id);
-                      // console.log('checkKeyMember: ' + keyMember);
-                    }}>
-                    <Image
-                      style={
-                        keyCat === item._id
-                          ? {
-                              width: 50,
-                              height: 50,
-                              borderRadius: 25,
-                              borderColor: 'green',
-                              borderWidth: 2.5,
-                            }
-                          : {
-                              width: 50,
-                              height: 50,
-                              borderRadius: 25,
-                              borderColor: 'black',
-                              borderWidth: 0.5,
-                            }
-                      }
-                      source={{uri: item.image}}
-                      id={item._id}
-                    />
-                  </TouchableOpacity>
-                  <View>
-                    <Text numberOfLines={1} style={{width: 60}}>
-                      {item.name}
-                    </Text>
-                  </View>
-                </Flex>
-              ))}
-            </Flex>
+                    <View>
+                      <Text numberOfLines={1} style={{maxWidth: 60}}>
+                        {item.name}
+                      </Text>
+                    </View>
+                  </Flex>
+                ))}
+              </Flex>
+            )}
           </Card>
           <Card style={{backgroundColor: 'white', margin: 5}}>
             <Flex justify="start">
@@ -418,20 +451,27 @@ export default function TaskDetails({route, navigation}) {
               <Flex.Item />
             </Flex>
           </Card>
-          <View>
-            <Flex justify="around">
-              {image.uri ? (
-                <Image
-                  style={{width: 200, height: 200, margin: 5}}
-                  source={{
-                    uri: image.uri,
-                  }}
-                />
-              ) : (
-                <WhiteSpace />
-              )}
-            </Flex>
-          </View>
+          {loading === false && (
+            <View style={[styles.container, styles.horizontal]}>
+              <ActivityIndicator size="large" color="green" />
+            </View>
+          )}
+          {loading === true && (
+            <View>
+              <Flex justify="around">
+                {image.uri ? (
+                  <Image
+                    style={{width: 200, height: 200, margin: 5}}
+                    source={{
+                      uri: image.uri,
+                    }}
+                  />
+                ) : (
+                  <WhiteSpace />
+                )}
+              </Flex>
+            </View>
+          )}
           <Card style={{margin: 5}}>
             <Label style={{color: 'green', marginLeft: 5}}>Note:</Label>
             <TextareaItem
