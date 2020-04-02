@@ -23,6 +23,8 @@ export default function TaskItem(props) {
           date: props.date,
           note: props.note,
           img: props.img,
+          assign: props.assign,
+          category: props.category,
           id: props.id,
         }),
       style: {backgroundColor: 'white', color: '#3498db', fontSize: 15},

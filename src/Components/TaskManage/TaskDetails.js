@@ -1,7 +1,16 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
-import React, {useState} from 'react';
-import {View, Text, TextInput, Image, ScrollView} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
 import {DatePicker, Button, Picker, Label} from 'native-base';
 import ImagePicker from 'react-native-image-picker';
 import {
@@ -22,6 +31,8 @@ export default function TaskDetails({route, navigation}) {
   const {note} = route.params;
   const {img} = route.params;
   const {id} = route.params;
+  const {assign} = route.params;
+  const {category} = route.params;
 
   const [image, setImage] = useState({
     uri: img,
@@ -30,17 +41,22 @@ export default function TaskDetails({route, navigation}) {
   const [selectpts, setSelectpts] = useState(point);
   const [selectdate, setSelectDate] = useState(date);
   const [_note, setNote] = useState(note);
-  console.log(select);
+  // check assign
+  const [keyMember, setkeyMember] = useState([]);
+  const [listMember, setlistMember] = useState([]);
+  const [listCat, setlistCat] = useState([]);
+  const [keyCat, setkeyCat] = useState(null);
+  //isBoth
+  const [isAll, setIsAll] = useState(false);
+  const toggleSwitch = () => setIsAll(previousState => !previousState);
+  // pla pla
   const defaultD =
     date.getDate() +
     '/' +
     (date.getMonth() + 1) +
     '/' +
     (date.getYear() + 1900);
-  // Add your Cloudinary name here
   const YOUR_CLOUDINARY_NAME = 'datn22020';
-
-  // If you dont't hacve a preset id, head over to cloudinary and create a preset, and add the id below
   const YOUR_CLOUDINARY_PRESET = 'DATN_HouseHelperApp_Image';
   const pickImageHandler = () => {
     const options = {
@@ -57,7 +73,6 @@ export default function TaskDetails({route, navigation}) {
       } else if (res.error) {
         console.log('Error', res.error);
       } else {
-        // setImage({uri: res.uri});
         uploadFile(res).then(async response => {
           let data = await response.json();
           setImage({
@@ -87,7 +102,61 @@ export default function TaskDetails({route, navigation}) {
       ],
     );
   };
-  console.log(id);
+  const handleCheckMember = index => {
+    const i = keyMember.indexOf(index);
+    if (i !== -1) {
+      const t = keyMember;
+      t.splice(i, 1);
+      setkeyMember([...t]);
+    } else {
+      setkeyMember([...keyMember, index]);
+    }
+  };
+  const handleCheckCat = index => {
+    // sconst i = keyCat.indexOf(index);
+    setkeyCat(index);
+  };
+  const getlistMember = () => {
+    return RNFetchBlob.fetch(
+      'GET',
+      'https://househelperapp-api.herokuapp.com/list-member',
+      {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        // more headers  ..
+      },
+    ).then(res => {
+      const t = res.json();
+      setlistMember(t.listMembers);
+    });
+  };
+  const getlistCat = () => {
+    return RNFetchBlob.fetch(
+      'GET',
+      'https://househelperapp-api.herokuapp.com/list-task-category',
+      {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        // more headers  ..
+      },
+    ).then(res => {
+      const t = res.json();
+      setlistCat(t.listTaskCategories);
+    });
+  };
+  useEffect(() => {
+    getlistMember();
+    getlistCat();
+    if (assign !== null) {
+      const t = [];
+      assign.mAssigns.map(item => {
+        t.push(item.mID._id);
+      });
+      setkeyMember(t);
+    }
+    setkeyCat(category._id);
+  }, []);
+  console.log(point);
   return (
     <View style={{paddingTop: 10}}>
       <ScrollView>
@@ -190,6 +259,118 @@ export default function TaskDetails({route, navigation}) {
               </Flex>
             </Flex.Item>
           </Flex>
+          <Card style={{padding: 10, margin: 5}}>
+            <Flex>
+              <Icon name="team" color="black" size="md" />
+              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
+                Assign
+              </Text>
+              <View style={{flex: 10}}>
+                <Switch
+                  trackColor={{false: '#767577', true: '#green'}}
+                  thumbColor={isAll ? 'green' : '#f4f3f4'}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={toggleSwitch}
+                  value={isAll}
+                />
+              </View>
+            </Flex>
+            <Flex justify="around" style={{marginTop: 5}}>
+              {listMember.map(item => (
+                <Flex direction="column" wrap="wrap">
+                  <Flex.Item>
+                    <TouchableOpacity
+                      onPress={() => {
+                        handleCheckMember(item._id);
+                        // console.log('checkKeyMember: ' + keyMember);
+                      }}>
+                      <Image
+                        style={
+                          keyMember.indexOf(item._id) !== -1
+                            ? {
+                                width: 50,
+                                height: 50,
+                                borderRadius: 25,
+                                borderColor: 'green',
+                                borderWidth: 2.5,
+                              }
+                            : {
+                                width: 50,
+                                height: 50,
+                                borderRadius: 25,
+                                borderColor: 'black',
+                                borderWidth: 0.5,
+                              }
+                        }
+                        source={{uri: item.mAvatar}}
+                        id={item._id}
+                      />
+                    </TouchableOpacity>
+                  </Flex.Item>
+                  <Flex.Item>
+                    <Text numberOfLines={1} style={{width: 60}}>
+                      {item.mName}
+                    </Text>
+                  </Flex.Item>
+                  {/* {keyMember.indexOf(item.id) !== -1 ? (
+                    <Icon name="check" color="green" />
+                  ) : (
+                    <Icon name="check" color="red" />
+                  )} */}
+                </Flex>
+              ))}
+            </Flex>
+          </Card>
+          <Card
+            style={{
+              padding: 10,
+              margin: 5,
+            }}>
+            <Flex>
+              <Icon name="tag" color="black" size="md" />
+              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
+                Category
+              </Text>
+            </Flex>
+            <Flex justify="around" style={{marginTop: 5}} wrap="wrap">
+              {listCat.map(item => (
+                <Flex direction="column" style={{margin: 5}}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleCheckCat(item._id);
+                      // console.log('checkKeyMember: ' + keyMember);
+                    }}>
+                    <Image
+                      style={
+                        keyCat === item._id
+                          ? {
+                              width: 50,
+                              height: 50,
+                              borderRadius: 25,
+                              borderColor: 'green',
+                              borderWidth: 2.5,
+                            }
+                          : {
+                              width: 50,
+                              height: 50,
+                              borderRadius: 25,
+                              borderColor: 'black',
+                              borderWidth: 0.5,
+                            }
+                      }
+                      source={{uri: item.image}}
+                      id={item._id}
+                    />
+                  </TouchableOpacity>
+                  <View>
+                    <Text numberOfLines={1} style={{width: 60}}>
+                      {item.name}
+                    </Text>
+                  </View>
+                </Flex>
+              ))}
+            </Flex>
+          </Card>
           <Card style={{backgroundColor: 'white', margin: 5}}>
             <Flex justify="start">
               <Icon
@@ -231,7 +412,7 @@ export default function TaskDetails({route, navigation}) {
                   transparent
                   style={{marginLeft: 10}}
                   onPress={pickImageHandler}>
-                  <Text style={{color: 'green', fontSize: 18}}>Hình ảnh</Text>
+                  <Text style={{color: 'green', fontSize: 18}}>Photo</Text>
                 </Button>
               </View>
               <Flex.Item />
@@ -252,7 +433,7 @@ export default function TaskDetails({route, navigation}) {
             </Flex>
           </View>
           <Card style={{margin: 5}}>
-            <Label style={{color: 'green', marginLeft: 5}}>Ghi chú:</Label>
+            <Label style={{color: 'green', marginLeft: 5}}>Note:</Label>
             <TextareaItem
               rows={4}
               style={{
@@ -261,7 +442,7 @@ export default function TaskDetails({route, navigation}) {
                 borderWidth: 1,
                 margin: 5,
               }}
-              placeholder="Ghi chú"
+              placeholder="Write a note"
               defaultValue={_note}
               onChangeText={value => setNote(value)}
               count={150}
@@ -270,12 +451,12 @@ export default function TaskDetails({route, navigation}) {
           <Flex style={{marginTop: 10}}>
             <Flex.Item>
               <Button full danger style={{margin: 5}}>
-                <Text style={{color: 'white', fontSize: 20}}>Xóa</Text>
+                <Text style={{color: 'white', fontSize: 20}}>Delete</Text>
               </Button>
             </Flex.Item>
             <Flex.Item>
               <Button full success style={{margin: 5}}>
-                <Text style={{color: 'white', fontSize: 20}}>Lưu</Text>
+                <Text style={{color: 'white', fontSize: 20}}>Save</Text>
               </Button>
             </Flex.Item>
           </Flex>

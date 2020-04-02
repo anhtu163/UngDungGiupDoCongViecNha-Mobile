@@ -19,26 +19,11 @@ import {
   Flex,
   Icon,
   TextareaItem,
+  Toast,
 } from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 
 export default function AddTask({route, navigation}) {
-  const styleCheck = StyleSheet.create({
-    check: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      borderColor: 'green',
-      borderWidth: 2,
-    },
-    non_check: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      borderColor: 'black',
-      borderWidth: 1,
-    },
-  });
   const [name, setName] = useState('');
   const [dueDate, setDueDate] = useState(new Date());
   const [note, setNote] = useState('');
@@ -47,6 +32,9 @@ export default function AddTask({route, navigation}) {
   const [selectpts, setSelectpts] = useState(0); // point
   const [keyMember, setkeyMember] = useState([]);
   const [listMember, setlistMember] = useState([]);
+  const [listCat, setlistCat] = useState([]);
+  const [keyCat, setkeyCat] = useState(null);
+  const [noti, setNoti] = useState(0);
   // let checkMember = [];
 
   const handleCheckMember = index => {
@@ -65,6 +53,10 @@ export default function AddTask({route, navigation}) {
       // checkMember.push(index);
     }
   };
+  const handleCheckCat = index => {
+    // sconst i = keyCat.indexOf(index);
+    setkeyCat(index);
+  };
   // console.log('checkKeyMember: ' + keyMember);
   // console.log('checkM: ' + checkMember);
   //list member demo
@@ -82,38 +74,24 @@ export default function AddTask({route, navigation}) {
       setlistMember(t.listMembers);
     });
   };
+  const getlistCat = () => {
+    return RNFetchBlob.fetch(
+      'GET',
+      'https://househelperapp-api.herokuapp.com/list-task-category',
+      {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+      },
+    ).then(res => {
+      const t = res.json();
+      setlistCat(t.listTaskCategories);
+    });
+  };
   useEffect(() => {
     getlistMember();
+    getlistCat();
+    setkeyCat('5e7f601c1c9d440000af791c');
   }, []);
-  // console.log(listMember);
-  // getlistMember();
-  // const listMember1 = [
-  //   {
-  //     id: '1',
-  //     name: 'Từ Anh',
-  //     img:
-  //       'https://thuthuatnhanh.com/wp-content/uploads/2018/07/anh-dai-dien-dep-439x390.jpg',
-  //   },
-  //   {
-  //     id: '2',
-  //     name: 'Lê Tuyết',
-  //     img:
-  //       'https://hinhnendephd.com/wp-content/uploads/2019/10/anh-avatar-dep.jpg',
-  //   },
-  //   {
-  //     id: '3',
-  //     name: 'Cát Uyên',
-  //     img:
-  //       'https://i.pinimg.com/236x/4b/81/77/4b81778263d5f5f51df7e26ff40f7bb8.jpg',
-  //   },
-  //   {
-  //     id: '4',
-  //     name: 'Tuấn Vũ',
-  //     img:
-  //       'https://i.pinimg.com/236x/4b/81/77/4b81778263d5f5f51df7e26ff40f7bb8.jpg',
-  //   },
-  // ];
-  // console.log(listMember);
   // Add your Cloudinary name here
   const YOUR_CLOUDINARY_NAME = 'datn22020';
 
@@ -164,7 +142,35 @@ export default function AddTask({route, navigation}) {
       ],
     );
   };
-  console.log(keyMember);
+  const handleAddTask = () => {
+    const data = {
+      name: name,
+      notes: note,
+      photo: image.uri,
+      assign: {
+        mAssigns: keyMember,
+        isAll: true,
+      },
+      date: null,
+      tcID: keyCat,
+      time: select,
+      points: selectpts,
+    };
+    RNFetchBlob.fetch(
+      'POST',
+      'https://househelperapp-api.herokuapp.com/add-task',
+      {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        'Content-Type': 'application/json',
+      },
+      JSON.stringify(data),
+    ).then(res => {
+      const t = res.json();
+      console.log(t);
+    });
+  };
+  console.log(keyCat);
   return (
     <View style={{paddingTop: 10}}>
       <ScrollView>
@@ -300,13 +306,65 @@ export default function AddTask({route, navigation}) {
                     </TouchableOpacity>
                   </Flex.Item>
                   <Flex.Item>
-                    <Text>{item.mName}</Text>
+                    <Text numberOfLines={1} style={{width: 60}}>
+                      {item.mName}
+                    </Text>
                   </Flex.Item>
                   {/* {keyMember.indexOf(item.id) !== -1 ? (
                     <Icon name="check" color="green" />
                   ) : (
                     <Icon name="check" color="red" />
                   )} */}
+                </Flex>
+              ))}
+            </Flex>
+          </Card>
+          <Card
+            style={{
+              padding: 10,
+              margin: 5,
+            }}>
+            <Flex>
+              <Icon name="tag" color="black" size="md" />
+              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
+                Category
+              </Text>
+            </Flex>
+            <Flex justify="around" style={{marginTop: 5}} wrap="wrap">
+              {listCat.map(item => (
+                <Flex direction="column" style={{margin: 5}}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleCheckCat(item._id);
+                      // console.log('checkKeyMember: ' + keyMember);
+                    }}>
+                    <Image
+                      style={
+                        keyCat === item._id
+                          ? {
+                              width: 50,
+                              height: 50,
+                              borderRadius: 25,
+                              borderColor: 'green',
+                              borderWidth: 2.5,
+                            }
+                          : {
+                              width: 50,
+                              height: 50,
+                              borderRadius: 25,
+                              borderColor: 'black',
+                              borderWidth: 0.5,
+                            }
+                      }
+                      source={{uri: item.image}}
+                      id={item._id}
+                    />
+                  </TouchableOpacity>
+                  <View>
+                    <Text numberOfLines={1} style={{width: 60}}>
+                      {item.name}
+                    </Text>
+                  </View>
                 </Flex>
               ))}
             </Flex>
@@ -390,7 +448,11 @@ export default function AddTask({route, navigation}) {
               count={150}
             />
           </Card>
-          <Button full success style={{margin: 5}}>
+          <Button
+            full
+            success
+            style={{margin: 5}}
+            onPress={() => handleAddTask()}>
             <Text style={{color: 'white', fontSize: 20}}>Add New Task</Text>
           </Button>
         </WingBlank>

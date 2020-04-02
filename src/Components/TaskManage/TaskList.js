@@ -1,14 +1,14 @@
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
 import React, {useState, useEffect} from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {List, Button} from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 import TaskItem from './TaskItem';
 
 export default function TaskView(props) {
   const navigation = props.navigation;
-  const [tasklist, setTaskList] = useState([]);
+  const [tasklist, setTaskList] = useState(null);
   const getlist = () => {
     return RNFetchBlob.fetch(
       'GET',
@@ -30,9 +30,25 @@ export default function TaskView(props) {
 
   //const st = this.props;
   // getlist();
-  console.log(tasklist);
-  if (!tasklist) {
-    return <Text>Loading...</Text>;
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    horizontal: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      padding: 10,
+    },
+  });
+
+  // console.log(tasklist);
+  if (tasklist === null) {
+    return (
+      <View style={[styles.container, styles.horizontal]}>
+        <ActivityIndicator size="large" color="green" />
+      </View>
+    );
   } else {
     return (
       <View style={{paddingTop: 10}}>
@@ -48,6 +64,8 @@ export default function TaskView(props) {
                 note={item.notes || ''}
                 img={item.photo}
                 id={item._id}
+                assign={item.assign}
+                category={item.tcID}
                 navigator={navigation}
                 getlist={getlist}
               />
