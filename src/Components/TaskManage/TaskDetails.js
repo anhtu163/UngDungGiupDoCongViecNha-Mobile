@@ -36,6 +36,7 @@ export default function TaskDetails({route, navigation}) {
   const {id} = route.params;
   const {assign} = route.params;
   const {category} = route.params;
+  const {token} = route.params;
 
   const [image, setImage] = useState({
     uri: img,
@@ -143,8 +144,7 @@ export default function TaskDetails({route, navigation}) {
       'GET',
       'https://househelperapp-api.herokuapp.com/list-member',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
         // more headers  ..
       },
     ).then(res => {
@@ -157,8 +157,7 @@ export default function TaskDetails({route, navigation}) {
       'GET',
       'https://househelperapp-api.herokuapp.com/list-task-category',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
         // more headers  ..
       },
     ).then(res => {
@@ -186,8 +185,7 @@ export default function TaskDetails({route, navigation}) {
       'POST',
       'https://househelperapp-api.herokuapp.com/edit-task',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json',
       },
       JSON.stringify(data),
@@ -359,6 +357,8 @@ export default function TaskDetails({route, navigation}) {
                                 borderRadius: 25,
                                 borderColor: 'green',
                                 borderWidth: 2.5,
+                                opacity: 0.4,
+                                backgroundColor: item.mAvatar.color,
                               }
                             : {
                                 width: 50,
@@ -366,9 +366,11 @@ export default function TaskDetails({route, navigation}) {
                                 borderRadius: 25,
                                 borderColor: 'black',
                                 borderWidth: 0.5,
+                                opacity: 0.4,
+                                backgroundColor: item.mAvatar.color,
                               }
                         }
-                        source={{uri: item.mAvatar}}
+                        source={{uri: item.mAvatar.image}}
                         id={item._id}
                       />
                     </TouchableOpacity>

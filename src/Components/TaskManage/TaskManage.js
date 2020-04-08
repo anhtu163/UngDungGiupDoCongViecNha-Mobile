@@ -11,71 +11,60 @@ import TaskList from './TaskList';
 import TaskDetails from './TaskDetails';
 import Login from '../Login/Login';
 
-export default class TaskManage extends Component {
-  Stack = createStackNavigator();
-
-  render() {
-    return (
-      <NavigationContainer>
-        <this.Stack.Navigator>
-          <this.Stack.Screen
-            name="TaskList"
-            component={TaskList}
-            options={({navigation}) => ({
-              headerTitle: () => (
-                <Flex>
-                  <Icon style={{color: 'green'}} size="lg" name="file-done" />
-                  <Text style={{fontSize: 20, marginLeft: 10}}>
-                    Task Manage
-                  </Text>
-                </Flex>
-              ),
-              headerRight: () => (
-                <Button
-                  icon={<Icon name="plus" />}
-                  type="ghost"
-                  style={{borderColor: 'white'}}
-                  onPress={() => navigation.navigate('AddTask')}>
-                  <Text style={{fontSize: 35}}>+</Text>
-                </Button>
-              ),
-            })}
-          />
-          <this.Stack.Screen
-            name="AddTask"
-            component={AddTask}
-            options={() => ({
-              headerTitle: props => (
-                <View>
-                  <Text style={{fontSize: 20}}>Add New Task</Text>
-                </View>
-              ),
-            })}
-          />
-          <this.Stack.Screen
-            name="TaskDetails"
-            component={TaskDetails}
-            options={() => ({
-              headerTitle: props => (
-                <View>
-                  <Text style={{fontSize: 20}}>Task Details</Text>
-                </View>
-              ),
-            })}
-          />
-          <this.Stack.Screen
-            name="Login"
-            component={Login}
-            options={() => ({
-              headerTitle: props => (
-                <View>
-                  <Text style={{fontSize: 20}}>Login</Text>
-                </View>
-              ),
-            })}
-          />
-        </this.Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
+export default function TaskManage(props) {
+  const Stack = createStackNavigator();
+  const token = props.token;
+  // console.log('token của TaskManage: ' + token);
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="TaskList"
+          component={TaskList}
+          initialParams={{token: token}}
+          options={({navigation}) => ({
+            headerTitle: () => (
+              <Flex>
+                <Icon style={{color: 'green'}} size="lg" name="file-done" />
+                <Text style={{fontSize: 20, marginLeft: 10}}>Task Manage</Text>
+              </Flex>
+            ),
+            headerRight: () => (
+              <Button
+                icon={<Icon name="plus" />}
+                type="ghost"
+                style={{borderColor: 'white'}}
+                onPress={() => navigation.navigate('AddTask')}>
+                <Text style={{fontSize: 35}}>+</Text>
+              </Button>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="AddTask"
+          component={AddTask}
+          initialParams={{token: token}}
+          options={() => ({
+            headerTitle: () => (
+              <View>
+                <Text style={{fontSize: 20}}>Add New Task</Text>
+              </View>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="TaskDetails"
+          component={TaskDetails}
+          initialParams={{token: token}}
+          options={() => ({
+            headerTitle: () => (
+              <View>
+                <Text style={{fontSize: 20}}>Task Details</Text>
+              </View>
+            ),
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }

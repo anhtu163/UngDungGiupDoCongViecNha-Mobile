@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
 import React, {useState, useEffect} from 'react';
@@ -26,6 +27,7 @@ import {
 import RNFetchBlob from 'react-native-fetch-blob';
 
 export default function AddTask({route, navigation}) {
+  const {token} = route.params;
   const [name, setName] = useState('');
   const [dueDate, setDueDate] = useState(new Date());
   const [note, setNote] = useState('');
@@ -76,8 +78,7 @@ export default function AddTask({route, navigation}) {
       'GET',
       'https://househelperapp-api.herokuapp.com/list-member',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
         // more headers  ..
       },
     ).then(res => {
@@ -90,8 +91,7 @@ export default function AddTask({route, navigation}) {
       'GET',
       'https://househelperapp-api.herokuapp.com/list-task-category',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
       },
     ).then(res => {
       const t = res.json();
@@ -101,7 +101,7 @@ export default function AddTask({route, navigation}) {
   useEffect(() => {
     getlistMember();
     getlistCat();
-    setkeyCat('5e7f601c1c9d440000af791c');
+    setkeyCat('');
   }, []);
   useEffect(() => {
     if (keyMember.length >= 2) {
@@ -181,8 +181,7 @@ export default function AddTask({route, navigation}) {
       'POST',
       'https://househelperapp-api.herokuapp.com/add-task',
       {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+        Authorization: 'Bearer ' + token,
         'Content-Type': 'application/json',
       },
       JSON.stringify(data),
@@ -330,6 +329,8 @@ export default function AddTask({route, navigation}) {
                                 borderRadius: 25,
                                 borderColor: 'green',
                                 borderWidth: 2.5,
+                                opacity: 0.4,
+                                backgroundColor: item.mAvatar.color,
                               }
                             : {
                                 width: 50,
@@ -337,9 +338,11 @@ export default function AddTask({route, navigation}) {
                                 borderRadius: 25,
                                 borderColor: 'black',
                                 borderWidth: 0.5,
+                                opacity: 0.4,
+                                backgroundColor: item.mAvatar.color,
                               }
                         }
-                        source={{uri: item.mAvatar}}
+                        source={{uri: item.mAvatar.image}}
                         id={item._id}
                       />
                     </TouchableOpacity>

@@ -1,21 +1,31 @@
 /* eslint-disable react-native/no-inline-styles */
 /* tslint:disable:no-console */
 import React from 'react';
-import {Image, Text} from 'react-native';
-import {List, SwipeAction} from '@ant-design/react-native';
+import {Image, Text, View} from 'react-native';
+import {List, SwipeAction, Icon, Flex} from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 
 export default function TaskItem(props) {
   const right = [
     {
-      text: 'Done',
+      text: (
+        <Flex direction="column">
+          <Icon name="check" color="green" />
+          <Text>Done</Text>
+        </Flex>
+      ),
       onPress: () => {
         console.log('done');
       },
       style: {backgroundColor: 'white', color: '#2ecc71', fontSize: 15},
     },
     {
-      text: 'Details',
+      text: (
+        <Flex direction="column">
+          <Icon name="exclamation" color="blue" />
+          <Text>Details</Text>
+        </Flex>
+      ),
       onPress: () =>
         props.navigator.navigate('TaskDetails', {
           name: props.name,
@@ -27,18 +37,23 @@ export default function TaskItem(props) {
           assign: props.assign,
           category: props.category,
           id: props.id,
+          token: props.token,
         }),
       style: {backgroundColor: 'white', color: '#3498db', fontSize: 15},
     },
     {
-      text: 'Delete',
+      text: (
+        <Flex direction="column">
+          <Icon name="delete" color="red" />
+          <Text>Delete</Text>
+        </Flex>
+      ),
       onPress: () =>
         RNFetchBlob.fetch(
           'POST',
           'https://househelperapp-api.herokuapp.com/delete-task',
           {
-            Authorization:
-              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjOTM4NGFiYmZjNDQ4NThiMTdkZWEiLCJtTmFtZSI6IlPhu69hIFPhu69hIiwibUVtYWlsIjoic3Vhc3VhQGdtYWlsLmNvbSIsIm1BZ2UiOm51bGwsIm1Sb2xlIjpudWxsLCJtSXNBZG1pbiI6ZmFsc2UsImZJRCI6IjVlNmI3YWFlNjUyYjAzM2IxYzkwZTA3ZiIsImlhdCI6MTU4NDE3Njg5M30.XJBgpNMD2zubJFyTTWF3qm-99h4DFPmlP53pQRZrj-k',
+            Authorization: 'Bearer ' + props.token,
             'Content-Type': 'application/json',
           },
           JSON.stringify({id: props.id}),
@@ -79,8 +94,10 @@ export default function TaskItem(props) {
                 borderRadius: 25,
                 borderColor: 'green',
                 borderWidth: 2,
+                opacity: 0.4,
+                backgroundColor: item.mID.mAvatar.color,
               }}
-              source={{uri: item.mID.mAvatar}}
+              source={{uri: item.mID.mAvatar.image}}
             />
           ))
         }>
