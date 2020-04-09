@@ -3,14 +3,16 @@
 /* tslint:disable:no-console */
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, StyleSheet, ActivityIndicator, ScrollView} from 'react-native';
-import {List} from '@ant-design/react-native';
+import {List, Button} from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
 import TaskItem from './TaskItem';
 
 export default function TaskView({navigation, route}) {
   // const navigation = props.navigation;
   const {token} = route.params;
+  const {AuthContext} = route.params;
   // console.log(route.params);
+  const {signOut} = React.useContext(AuthContext);
   const [tasklist, setTaskList] = useState(null);
   //console.log('Bearer ' + token);
   const getlist = useCallback(() => {
@@ -73,6 +75,7 @@ export default function TaskView({navigation, route}) {
                 />
               ))}
           </List>
+          <Button onPress={() => signOut()}>Đăng xuất</Button>
         </ScrollView>
       </View>
     );

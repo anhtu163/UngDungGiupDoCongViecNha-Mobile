@@ -9,6 +9,7 @@ import Award from '../Award/Award';
 export default function Home(props) {
   const [selectedTab, setselectedTab] = useState('Tab3');
   const token = props.token;
+  const AuthContext = props.AuthContext;
   //console.log('props của Home' + props);
   //console.log('token của Home: ' + token);
   return (
@@ -21,7 +22,7 @@ export default function Home(props) {
         icon={<Icon name="home" />}
         selected={selectedTab === 'Tab1'}
         onPress={() => setselectedTab('Tab1')}>
-        <Family />
+        <Family token={token} />
       </TabBar.Item>
       <TabBar.Item
         icon={<Icon name="calendar" />}
@@ -35,7 +36,7 @@ export default function Home(props) {
         title="Tasks"
         selected={selectedTab === 'Tab3'}
         onPress={() => setselectedTab('Tab3')}>
-        <TaskManage token={token} />
+        <TaskManage token={token} AuthContext={AuthContext} />
       </TabBar.Item>
       <TabBar.Item
         icon={<Icon name="gift" />}

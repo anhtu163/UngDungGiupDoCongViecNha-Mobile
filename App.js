@@ -141,7 +141,7 @@ export default function App({navigation}) {
   return (
     <AuthContext.Provider value={authContext}>
       {state.userToken !== null ? (
-        <Home token={t} />
+        <Home AuthContext={AuthContext} token={t} />
       ) : (
         <AuthManage AuthContext={AuthContext} />
       )}

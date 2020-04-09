@@ -14,6 +14,7 @@ import Login from '../Login/Login';
 export default function TaskManage(props) {
   const Stack = createStackNavigator();
   const token = props.token;
+  const AuthContext = props.AuthContext;
   // console.log('token của TaskManage: ' + token);
   return (
     <NavigationContainer>
@@ -21,11 +22,11 @@ export default function TaskManage(props) {
         <Stack.Screen
           name="TaskList"
           component={TaskList}
-          initialParams={{token: token}}
+          initialParams={{token: token, AuthContext: AuthContext}}
           options={({navigation}) => ({
             headerTitle: () => (
               <Flex>
-                <Icon style={{color: 'green'}} size="lg" name="file-done" />
+                <Icon style={{color: 'green'}} size={30} name="file-done" />
                 <Text style={{fontSize: 20, marginLeft: 10}}>Task Manage</Text>
               </Flex>
             ),
