@@ -80,9 +80,12 @@ project.ext.react = [
     entryFile: "index.js",
     enableHermes: false,  // clean and rebuild if changing
 ]
+project.ext.vectoricons = [
+        iconFontNames: [ 'MaterialIcons.ttf', 'EvilIcons.ttf' ] // Name of the font files you want to copy
+]
 
 apply from: "../../node_modules/react-native/react.gradle"
-
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 /**
  * Set this to true to create two separate APKs instead of one:
  *   - An APK that only works on ARM devices
@@ -150,10 +153,20 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        // đoạn này mới thêm
+        release {
+            storeFile file(MY_AWESOME_PROJECT_RELEASE_STORE_FILE)
+            storePassword MY_AWESOME_PROJECT_RELEASE_STORE_PASSWORD
+            keyAlias MY_AWESOME_PROJECT_RELEASE_KEY_ALIAS
+            keyPassword MY_AWESOME_PROJECT_RELEASE_KEY_PASSWORD
+        }
+        //
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            // mới thêm câu dưới
+            signingConfig signingConfigs.release
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -180,11 +193,13 @@ android {
 }
 
 dependencies {
+    implementation project(':@react-native-community_viewpager')
+    implementation project(':@react-native-community_datetimepicker')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-image-picker')
     implementation 'androidx.appcompat:appcompat:1.1.0-rc01'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0-alpha02'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0-rc01'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
 

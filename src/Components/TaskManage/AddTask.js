@@ -22,14 +22,20 @@ import {
   Flex,
   Icon,
   TextareaItem,
+  InputItem,
   // Toast,
 } from '@ant-design/react-native';
 import RNFetchBlob from 'react-native-fetch-blob';
+//import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 export default function AddTask({route, navigation}) {
   const {token} = route.params;
+  const {socket} = route.params;
   const [name, setName] = useState('');
   const [dueDate, setDueDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [dueDateTime, setdueDateTime] = useState(null);
   const [note, setNote] = useState('');
   const [image, setImage] = useState({uri: ''});
   const [select, setSelect] = useState(0); // time
@@ -38,14 +44,128 @@ export default function AddTask({route, navigation}) {
   const [listMember, setlistMember] = useState(null);
   const [listCat, setlistCat] = useState(null);
   const [keyCat, setkeyCat] = useState(null);
-  // const [noti, setNoti] = useState(0);
+  const [err, seterr] = useState('');
+  const [errname, seterrname] = useState('');
+  const [penalty, setpenalty] = useState(0);
   const [loading, setLoading] = useState(null);
   // let checkMember = [];
+  const [startdate, setstartdate] = useState(new Date());
+  const [starttime, setstarttime] = useState(new Date());
+  const [RStartTime, setRStartTime] = useState(null);
 
   const [isAll, setIsAll] = useState(false);
   const toggleSwitch = () => setIsAll(previousState => !previousState);
   const [isMoreTwo, setIsMoreTwo] = useState(false);
-  const [noti, setNoti] = useState('');
+  const [showRepeat, setshowRepeat] = useState(false);
+  const [repeat, setrepeat] = useState(null);
+
+  const [showReminder, setshowReminder] = useState(false);
+  const [reminder, setreminder] = useState(null);
+
+  //Đoạn code mới
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const [isDateRepeatPickerVisible, setDateRepeatPickerVisibility] = useState(
+    false,
+  );
+  const [isTimeRepeatPickerVisible, setTimeRepeatPickerVisibility] = useState(
+    false,
+  );
+  const [tasklist, setTaskList] = useState(null);
+  const getlist = () => {
+    return RNFetchBlob.fetch(
+      'GET',
+      'https://househelperapp-api.herokuapp.com/list-task',
+      {
+        Authorization: 'Bearer ' + token,
+        // more headers  ..
+      },
+    ).then(res => {
+      const r = res.json();
+      setTaskList(r.listTasks);
+      // console.log(r.listTasks);
+    });
+  };
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+  const showTimePicker = () => {
+    setTimePickerVisibility(true);
+  };
+
+  const hideTimePicker = () => {
+    setTimePickerVisibility(false);
+  };
+  const showDateRepeatPicker = () => {
+    setDateRepeatPickerVisibility(true);
+  };
+
+  const hideDateRepeatPicker = () => {
+    setDateRepeatPickerVisibility(false);
+  };
+  const showTimeRepeatPicker = () => {
+    setTimeRepeatPickerVisibility(true);
+  };
+
+  const hideTimeRepeatPicker = () => {
+    setTimeRepeatPickerVisibility(false);
+  };
+  const handleTimeConfirm = dt => {
+    hideTimePicker();
+    setTime(dt);
+    setdueDateTime(
+      dueDate.getFullYear() +
+        '-' +
+        (dueDate.getMonth() + 1) +
+        '-' +
+        dueDate.getDate() +
+        ' ' +
+        dt.getHours() +
+        ':' +
+        dt.getMinutes() +
+        ':00 +07:00',
+    );
+  };
+
+  const handleConfirm = dt => {
+    hideDatePicker();
+    setDueDate(dt);
+    setdueDateTime(
+      `${dt.getFullYear()}-${dt.getMonth() +
+        1}-${dt.getDate()} ${time.getHours()}:${time.getMinutes()}:00 +07:00`,
+    );
+  };
+  const handleTimeRepeatConfirm = dt => {
+    hideTimeRepeatPicker();
+    setstarttime(dt);
+    setRStartTime(
+      startdate.getFullYear() +
+        '-' +
+        (startdate.getMonth() + 1) +
+        '-' +
+        startdate.getDate() +
+        ' ' +
+        dt.getHours() +
+        ':' +
+        dt.getMinutes() +
+        ':00 +07:00',
+    );
+  };
+
+  const handleRepeatConfirm = dt => {
+    hideDateRepeatPicker();
+    setstartdate(dt);
+    setRStartTime(
+      `${dt.getFullYear()}-${dt.getMonth() +
+        1}-${dt.getDate()} ${starttime.getHours()}:${starttime.getMinutes()}:00 +07:00`,
+    );
+  };
+  //
 
   const styles = StyleSheet.create({
     container: {
@@ -68,9 +188,23 @@ export default function AddTask({route, navigation}) {
     } else {
       setkeyMember([...keyMember, index]);
     }
+    if (keyMember.length < 2) {
+      setIsAll(false);
+    }
   };
-  const handleCheckCat = index => {
-    setkeyCat(index);
+  const handleCheckCat = (index, img, tcname) => {
+    if (keyCat === index) {
+      navigation.navigate('EditTaskCategory', {
+        id: index,
+        image: img,
+        name: tcname,
+        token: token,
+        listCat: listCat,
+        getlistCat: getlistCat,
+      });
+    } else {
+      setkeyCat(index);
+    }
   };
   //list member
   const getlistMember = () => {
@@ -101,7 +235,7 @@ export default function AddTask({route, navigation}) {
   useEffect(() => {
     getlistMember();
     getlistCat();
-    setkeyCat('');
+    getlist();
   }, []);
   useEffect(() => {
     if (keyMember.length >= 2) {
@@ -110,6 +244,38 @@ export default function AddTask({route, navigation}) {
       setIsMoreTwo(false);
     }
   }, [keyMember.length]);
+  useEffect(() => {
+    if (listCat !== null) {
+      setkeyCat(listCat[0]._id);
+    }
+  }, [listCat]);
+  useEffect(() => {
+    if (showRepeat === false) {
+      setrepeat(null);
+    }
+    if (showReminder === false) {
+      setreminder(null);
+    }
+  });
+  useEffect(() => {
+    if (showRepeat === false) {
+      setRStartTime(null);
+      setstartdate(new Date());
+      setstarttime(new Date());
+      setrepeat(null);
+    }
+  }, [showRepeat]);
+  useEffect(() => {
+    if (socket) {
+      socket.on('TaskCategory', data => {
+        getlistCat();
+      });
+      socket.on('Member', data => {
+        getlistMember();
+      });
+    }
+  }, []);
+  // console.log(reminder);
   // Add your Cloudinary name here
   const YOUR_CLOUDINARY_NAME = 'datn22020';
 
@@ -171,53 +337,81 @@ export default function AddTask({route, navigation}) {
         mAssigns: keyMember,
         isAll: isAll,
       },
-      date: null,
+      dueDate: dueDateTime,
+      penalty: penalty,
       tcID: keyCat,
       time: select,
       points: selectpts,
+      repeat: repeat === null ? null : {type: repeat, start: RStartTime},
+      reminder: reminder,
     };
     console.log(data);
-    RNFetchBlob.fetch(
-      'POST',
-      'https://househelperapp-api.herokuapp.com/add-task',
-      {
-        Authorization: 'Bearer ' + token,
-        'Content-Type': 'application/json',
-      },
-      JSON.stringify(data),
-    ).then(res => {
-      const t = res.json();
-      console.log(t);
-      if (t.code === 2020) {
-        navigation.navigate('TaskList');
-        // setNoti('Add New Task Successfully!');
-      } else {
-        setNoti('Add New Task Failed!');
-      }
-    });
+    if (name === '') {
+      seterr('Tên công việc không được bỏ trống !!!!');
+    } else if (select === 0) {
+      seterr('Thời gian thực hiện không được bỏ trống !!!!');
+    } else if (selectpts === 0) {
+      seterr('Điểm công việc không được bỏ trống !!!!');
+    } else if (selectpts <= penalty) {
+      seterr(
+        'Điểm trừ khi không hoàn thành không được lớn hơn điểm của công việc !!!',
+      );
+    } else if (
+      tasklist &&
+      tasklist.filter(item => item.name === name).length > 0
+    ) {
+      seterr('Tên công việc đã tồn tại');
+    } else {
+      RNFetchBlob.fetch(
+        'POST',
+        'https://househelperapp-api.herokuapp.com/add-task',
+        {
+          Authorization: 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+        JSON.stringify(data),
+      ).then(res => {
+        const t = res.json();
+        console.log(t);
+        if (t.code === 2020) {
+          navigation.navigate('TaskList', {added: true});
+        } else {
+          seterr(t.message);
+        }
+      });
+    }
   };
   // console.log(keyCat);
   return (
-    <View style={{paddingTop: 10}}>
+    <View style={{paddingTop: 10, backgroundColor: 'white'}}>
       <ScrollView>
         <WingBlank size="sm">
-          <Card style={{padding: 10}}>
+          <Card style={{padding: 10, elevation: 5}}>
             <Flex justify="center">
               <TextInput
                 style={{fontSize: 20, fontFamily: ''}}
-                placeholder="Task name"
+                placeholder="Tên công việc"
                 defaultValue={name}
                 onChangeText={value => {
                   setName(value);
-                  setNoti('');
+                  tasklist &&
+                  tasklist.filter(item => item.name === value).length > 0
+                    ? seterrname('!!!Tên công việc đã tồn tại')
+                    : seterrname('');
+                  seterr('');
                 }}
               />
             </Flex>
           </Card>
           <WhiteSpace />
+          {errname !== '' && (
+            <Text style={{color: 'red', fontSize: 17, margin: 10}}>
+              {errname}
+            </Text>
+          )}
 
-          <Flex justify="between">
-            <Flex.Item style={{margin: 5}}>
+          <Flex justify="between" style={{marginRight: 6}}>
+            <Flex.Item style={{margin: 5, flex: 1, elevation: 5}}>
               <Flex
                 style={{
                   backgroundColor: '#bdc3c7',
@@ -225,31 +419,38 @@ export default function AddTask({route, navigation}) {
                 justify="around">
                 <Icon
                   name="clock-circle"
-                  size={28}
+                  size={23}
                   color="white"
                   style={{marginLeft: 10}}
                 />
-                <Flex.Item>
+                <View>
                   <Picker
                     note
                     mode="dropdown"
                     style={{
                       color: 'white',
                       backgroundColor: '#bdc3c7',
-                      marginLeft: 20,
+                      minWidth: 135,
+                      //marginRight: -10,
+                      //paddingRight: -10,
                     }}
                     selectedValue={select}
                     onValueChange={setSelect.bind(this)}>
-                    <Picker.Item label="0 mins" value="0" />
-                    <Picker.Item label="30 mins" value="30" />
-                    <Picker.Item label="60 mins" value="60" />
-                    <Picker.Item label="120 mins" value="120" />
-                    <Picker.Item label="180 mins" value="180" />
+                    <Picker.Item label="0 phút" value={0} />
+                    <Picker.Item label="3 phút" value={3} />
+                    <Picker.Item label="5 phút" value={5} />
+                    <Picker.Item label="10 phút" value={10} />
+                    <Picker.Item label="15 phút" value={15} />
+                    <Picker.Item label="20 phút" value={20} />
+                    <Picker.Item label="30 phút" value={30} />
+                    <Picker.Item label="60 phút" value={60} />
+                    <Picker.Item label="120 phút" value={120} />
+                    <Picker.Item label="180 phút" value={180} />
                   </Picker>
-                </Flex.Item>
+                </View>
               </Flex>
             </Flex.Item>
-            <Flex.Item style={{margin: 5}}>
+            <Flex.Item style={{margin: 5, flex: 1, elevation: 5}}>
               <Flex
                 style={{
                   backgroundColor: '#bdc3c7',
@@ -257,46 +458,51 @@ export default function AddTask({route, navigation}) {
                 justify="around">
                 <Icon
                   name="star"
-                  size={30}
+                  size={25}
                   color="white"
                   style={{marginLeft: 10}}
                 />
-                <Flex.Item>
+                <View>
                   <Picker
                     note
                     mode="dropdown"
                     style={{
                       color: 'white',
                       backgroundColor: '#bdc3c7',
-                      marginLeft: 20,
+                      minWidth: 135,
                     }}
                     selectedValue={selectpts}
                     onValueChange={setSelectpts.bind(this)}>
-                    <Picker.Item label="0 pts" value="0" />
-                    <Picker.Item label="10 pts" value="10" />
-                    <Picker.Item label="20 pts" value="20" />
-                    <Picker.Item label="50 pts" value="50" />
-                    <Picker.Item label="100 pts" value="100" />
+                    <Picker.Item label="0 điểm" value={0} />
+                    <Picker.Item label="5 điểm" value={5} />
+                    <Picker.Item label="10 điểm" value={10} />
+                    <Picker.Item label="15 điểm" value={15} />
+                    <Picker.Item label="20 điểm" value={20} />
+                    <Picker.Item label="25 điểm" value={25} />
+                    <Picker.Item label="30 điểm" value={30} />
+                    <Picker.Item label="50 điểm" value={50} />
+                    <Picker.Item label="100 điểm" value={100} />
                   </Picker>
-                </Flex.Item>
+                </View>
               </Flex>
             </Flex.Item>
           </Flex>
-          <Card style={{padding: 10, margin: 5}}>
+          <Card style={{padding: 10, margin: 5, elevation: 5}}>
             <Flex>
               <Icon name="team" color="black" size="md" />
-              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
-                Assign
+              <Text style={{color: '#0099FF', fontSize: 16, marginLeft: 5}}>
+                Phân công
               </Text>
               {isMoreTwo && (
                 <View style={{flex: 10}}>
                   <Flex justify="end">
-                    <Text style={{color: 'green', fontSize: 14, marginLeft: 5}}>
-                      Do Together
+                    <Text
+                      style={{color: '#0099FF', fontSize: 14, marginLeft: 5}}>
+                      Làm cùng nhau
                     </Text>
                     <Switch
-                      trackColor={{false: '#767577', true: '#green'}}
-                      thumbColor={isAll ? 'green' : '#f4f3f4'}
+                      trackColor={{false: '#767577', true: '#34ace0'}}
+                      thumbColor={isAll ? '#0099FF' : '#0099FF'}
                       ios_backgroundColor="#3e3e3e"
                       onValueChange={toggleSwitch}
                       value={isAll}
@@ -307,16 +513,16 @@ export default function AddTask({route, navigation}) {
             </Flex>
             {listMember === null ? (
               <View style={[styles.container, styles.horizontal]}>
-                <ActivityIndicator size="large" color="green" />
+                <ActivityIndicator size="large" color="#0099FF" />
               </View>
             ) : (
-              <Flex justify="around" style={{marginTop: 10}} wrap="wrap">
+              <Flex justify="start" style={{marginTop: 10}} wrap="wrap">
                 {listMember.map(item => (
                   <Flex direction="column" style={{margin: 5}}>
                     <TouchableOpacity
                       onPress={() => {
                         handleCheckMember(item._id);
-                        setNoti('');
+                        seterr('');
                         // handleCheckMoreTwoMember();
                         // console.log('checkKeyMember: ' + keyMember
                       }}>
@@ -324,21 +530,21 @@ export default function AddTask({route, navigation}) {
                         style={
                           keyMember.indexOf(item._id) !== -1
                             ? {
-                                width: 50,
-                                height: 50,
+                                width: 45,
+                                height: 45,
                                 borderRadius: 25,
-                                borderColor: 'green',
-                                borderWidth: 2.5,
-                                opacity: 0.4,
+                                borderColor: '#0099FF',
+                                borderWidth: 3,
+                                opacity: item.mAvatar.color ? 0.6 : 1,
                                 backgroundColor: item.mAvatar.color,
                               }
                             : {
-                                width: 50,
-                                height: 50,
+                                width: 45,
+                                height: 45,
                                 borderRadius: 25,
-                                borderColor: 'black',
-                                borderWidth: 0.5,
-                                opacity: 0.4,
+                                borderColor: 'gray',
+                                borderWidth: 2,
+                                opacity: item.mAvatar.color ? 0.6 : 1,
                                 backgroundColor: item.mAvatar.color,
                               }
                         }
@@ -347,7 +553,7 @@ export default function AddTask({route, navigation}) {
                       />
                     </TouchableOpacity>
                     <View>
-                      <Text numberOfLines={1} style={{width: 60}}>
+                      <Text numberOfLines={1} style={{maxWidth: 62}}>
                         {item.mName}
                       </Text>
                     </View>
@@ -360,43 +566,45 @@ export default function AddTask({route, navigation}) {
             style={{
               padding: 10,
               margin: 5,
+              paddingLeft: 5,
+              elevation: 5,
             }}>
             <Flex>
               <Icon name="tag" color="black" size="md" />
-              <Text style={{color: 'green', fontSize: 18, marginLeft: 5}}>
-                Category
+              <Text style={{color: '#0099FF', fontSize: 16, marginLeft: 5}}>
+                Loại công việc
               </Text>
             </Flex>
             {listCat === null ? (
               <View style={[styles.container, styles.horizontal]}>
-                <ActivityIndicator size="large" color="green" />
+                <ActivityIndicator size="large" color="#0099FF" />
               </View>
             ) : (
-              <Flex justify="around" style={{marginTop: 10}} wrap="wrap">
+              <Flex justify="between" style={{marginTop: 10}} wrap="wrap">
                 {listCat.map(item => (
-                  <Flex direction="column" style={{margin: 5}}>
+                  <Flex direction="column" style={{width: 60, marginTop: 10}}>
                     <TouchableOpacity
                       onPress={() => {
-                        handleCheckCat(item._id);
+                        handleCheckCat(item._id, item.image, item.name);
                         // console.log('checkKeyMember: ' + keyMember);
-                        setNoti('');
+                        seterr('');
                       }}>
                       <Image
                         style={
                           keyCat === item._id
                             ? {
-                                width: 50,
-                                height: 50,
+                                width: 44,
+                                height: 44,
                                 borderRadius: 25,
-                                borderColor: 'green',
-                                borderWidth: 2.5,
+                                borderColor: '#0099FF',
+                                borderWidth: 3,
                               }
                             : {
-                                width: 50,
-                                height: 50,
+                                width: 44,
+                                height: 44,
                                 borderRadius: 25,
-                                borderColor: 'black',
-                                borderWidth: 0.5,
+                                borderColor: 'gray',
+                                borderWidth: 2,
                               }
                         }
                         source={{uri: item.image}}
@@ -404,16 +612,280 @@ export default function AddTask({route, navigation}) {
                       />
                     </TouchableOpacity>
                     <View>
-                      <Text numberOfLines={1} style={{width: 60}}>
+                      <Text numberOfLines={1} style={{maxWidth: 60}}>
                         {item.name}
                       </Text>
                     </View>
                   </Flex>
                 ))}
+                <View style={{width: 60, marginTop: 10, paddingLeft: 10}}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('AddTaskCategory', {
+                        getlistCat: getlistCat,
+                      })
+                    }>
+                    <Icon name="plus-circle" size="lg" color="#0099FF" />
+                  </TouchableOpacity>
+                </View>
               </Flex>
             )}
           </Card>
-          <Card style={{backgroundColor: 'white', margin: 5}}>
+          <Card style={{backgroundColor: 'white', margin: 5, elevation: 5}}>
+            <Flex justify="start" style={{marginTop: 10}}>
+              <Icon
+                name="redo"
+                size="md"
+                color="black"
+                style={{marginLeft: 5}}
+              />
+
+              <View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setshowRepeat(!showRepeat);
+                  }}>
+                  <Text
+                    style={{color: '#0099FF', fontSize: 16, marginLeft: 10}}>
+                    Lặp lại
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Flex>
+            <View>
+              {showRepeat === true && (
+                <View>
+                  <Flex
+                    justify="around"
+                    style={{marginTop: 10, marginBottom: 15}}>
+                    <TouchableOpacity
+                      style={
+                        repeat === 'daily'
+                          ? {borderColor: '#0099FF', borderWidth: 2}
+                          : {
+                              borderColor: 'gray',
+                              borderWidth: 2,
+                            }
+                      }
+                      onPress={() => {
+                        setrepeat('daily');
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          padding: 8,
+                        }}>
+                        Hàng ngày
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={
+                        repeat === 'weekly'
+                          ? {borderColor: '#0099FF', borderWidth: 2}
+                          : {
+                              borderColor: 'gray',
+                              borderWidth: 2,
+                            }
+                      }
+                      onPress={() => {
+                        setrepeat('weekly');
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          padding: 8,
+                        }}>
+                        Hàng tuần
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={
+                        repeat === 'monthly'
+                          ? {borderColor: '#0099FF', borderWidth: 2}
+                          : {
+                              borderColor: 'gray',
+                              borderWidth: 2,
+                            }
+                      }
+                      onPress={() => {
+                        setrepeat('monthly');
+                      }}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          padding: 8,
+                        }}>
+                        Hàng tháng
+                      </Text>
+                    </TouchableOpacity>
+                  </Flex>
+                  <Flex justify="start" style={{marginLeft: 10}}>
+                    <View style={{flex: 1}}>
+                      <TouchableOpacity onPress={showDateRepeatPicker}>
+                        <Flex>
+                          <Icon
+                            name="calendar"
+                            size="md"
+                            color="black"
+                            style={{marginLeft: 5, backgroundColor: 'white'}}
+                          />
+                          <Text
+                            style={{
+                              marginLeft: 10,
+                              color: '#0099FF',
+                              fontSize: 16,
+                            }}>
+                            {RStartTime
+                              ? startdate.getDate() >= 10 &&
+                                startdate.getMonth() + 1 >= 10
+                                ? startdate.getDate() +
+                                  '/' +
+                                  (startdate.getMonth() + 1) +
+                                  '/' +
+                                  startdate.getFullYear()
+                                : startdate.getDate() < 10 &&
+                                  startdate.getMonth() + 1 >= 10
+                                ? '0' +
+                                  startdate.getDate() +
+                                  '/' +
+                                  (startdate.getMonth() + 1) +
+                                  '/' +
+                                  startdate.getFullYear()
+                                : startdate.getDate() >= 10 &&
+                                  startdate.getMonth() + 1 < 10
+                                ? startdate.getDate() +
+                                  '/0' +
+                                  (startdate.getMonth() + 1) +
+                                  '/' +
+                                  startdate.getFullYear()
+                                : '0' +
+                                  startdate.getDate() +
+                                  '/0' +
+                                  (startdate.getMonth() + 1) +
+                                  '/' +
+                                  startdate.getFullYear()
+                              : 'Ngày bắt đầu'}
+                          </Text>
+                        </Flex>
+                      </TouchableOpacity>
+                      <DateTimePickerModal
+                        isVisible={isDateRepeatPickerVisible}
+                        date={startdate}
+                        mode="date"
+                        onDateChange={dt => {
+                          setstartdate(dt);
+                          console.log(dt);
+                          seterr('');
+                        }}
+                        onConfirm={handleRepeatConfirm}
+                        onCancel={hideDateRepeatPicker}
+                      />
+                    </View>
+                    <View style={{flex: 1}}>
+                      <TouchableOpacity onPress={showTimeRepeatPicker}>
+                        <Flex>
+                          <Icon
+                            name="clock-circle"
+                            size="md"
+                            color="black"
+                            style={{backgroundColor: 'white'}}
+                          />
+                          <Text
+                            style={{
+                              marginLeft: 8,
+                              color: '#0099FF',
+                              fontSize: 16,
+                            }}>
+                            {RStartTime
+                              ? starttime.getHours() < 10 &&
+                                starttime.getMinutes() >= 10
+                                ? '0' +
+                                  starttime.getHours() +
+                                  ' : ' +
+                                  starttime.getMinutes()
+                                : starttime.getHours() >= 10 &&
+                                  starttime.getMinutes() < 10
+                                ? starttime.getHours() +
+                                  ' : 0' +
+                                  starttime.getMinutes()
+                                : starttime.getHours() < 10 &&
+                                  starttime.getMinutes() < 10
+                                ? '0' +
+                                  starttime.getHours() +
+                                  ' : 0' +
+                                  starttime.getMinutes()
+                                : starttime.getHours() +
+                                  ' : ' +
+                                  starttime.getMinutes()
+                              : 'Thời gian bắt đầu'}
+                          </Text>
+                        </Flex>
+                      </TouchableOpacity>
+                      <DateTimePickerModal
+                        isVisible={isTimeRepeatPickerVisible}
+                        date={starttime}
+                        mode="time"
+                        is24Hour={true}
+                        onDateChange={dt => {
+                          setstarttime(dt);
+                          console.log(dt);
+                          seterr('');
+                        }}
+                        onConfirm={handleTimeRepeatConfirm}
+                        onCancel={hideTimeRepeatPicker}
+                      />
+                    </View>
+                  </Flex>
+                </View>
+              )}
+            </View>
+            <Flex justify="start">
+              <Icon
+                name="bell"
+                size="md"
+                color="black"
+                style={{marginLeft: 5}}
+              />
+
+              <View>
+                <Button
+                  full
+                  transparent
+                  style={{marginLeft: 10}}
+                  onPress={() => {
+                    setshowReminder(!showReminder);
+                  }}>
+                  <Text style={{color: '#0099FF', fontSize: 16}}>
+                    Nhắc nhở trước hạn
+                  </Text>
+                </Button>
+              </View>
+            </Flex>
+            <View>
+              {showReminder === true && (
+                <Flex style={{marginTop: -10}}>
+                  <TextInput
+                    style={{
+                      fontSize: 16,
+                      fontFamily: '',
+                      marginLeft: 25,
+                      flex: 3,
+                    }}
+                    placeholder="Thời gian nhắc nhở trước hạn"
+                    keyboardType="numeric"
+                    defaultValue={reminder}
+                    onChangeText={value => {
+                      setreminder(parseInt(value, 10));
+                      seterr('');
+                    }}
+                  />
+                  <Text style={{fontSize: 17, color: '#0099FF', flex: 1}}>
+                    ( Phút )
+                  </Text>
+                </Flex>
+              )}
+            </View>
+
             <Flex justify="start">
               <Icon
                 name="calendar"
@@ -423,24 +895,82 @@ export default function AddTask({route, navigation}) {
               />
 
               <Flex.Item>
-                <DatePicker
-                  defaultDate={dueDate}
-                  locale={'en'}
-                  timeZoneOffsetInMinutes={undefined}
-                  modalTransparent={true}
-                  animationType={'slide'}
-                  androidMode={'calendar'}
-                  placeHolderText="Due time"
-                  textStyle={{color: 'green', fontSize: 18}}
-                  placeHolderTextStyle={{
-                    color: 'green',
-                    fontSize: 18,
+                <TouchableOpacity onPress={showDatePicker}>
+                  <Text
+                    style={{marginLeft: 10, color: '#0099FF', fontSize: 16}}>
+                    {dueDateTime
+                      ? dueDate.getDate() +
+                        '/' +
+                        (dueDate.getMonth() + 1) +
+                        '/' +
+                        dueDate.getFullYear()
+                      : 'Hạn công việc'}
+                  </Text>
+                </TouchableOpacity>
+                <DateTimePickerModal
+                  isVisible={isDatePickerVisible}
+                  date={dueDate}
+                  mode="date"
+                  onDateChange={dt => {
+                    setDueDate(dt);
+                    setdueDateTime(
+                      `${dt.getFullYear()}-${dt.getMonth() +
+                        1}-${dt.getDate()} ${time.getHours()}:${time.getMinutes()}:00 +07:00`,
+                    );
+                    console.log(dt);
+                    seterr('');
                   }}
-                  onDateChange={date => {
-                    setDueDate(date);
-                    setNoti('');
+                  onConfirm={handleConfirm}
+                  onCancel={hideDatePicker}
+                />
+              </Flex.Item>
+              <Flex.Item>
+                <TouchableOpacity onPress={showTimePicker}>
+                  <Flex>
+                    <Icon
+                      name="clock-circle"
+                      size="md"
+                      color="black"
+                      style={{backgroundColor: 'white'}}
+                    />
+                    <Text
+                      style={{marginLeft: 10, color: '#0099FF', fontSize: 16}}>
+                      {dueDateTime
+                        ? time.getHours() < 10 && time.getMinutes() >= 10
+                          ? '0' + time.getHours() + ' : ' + time.getMinutes()
+                          : time.getHours() >= 10 && time.getMinutes() < 10
+                          ? time.getHours() + ' : 0' + time.getMinutes()
+                          : time.getHours() < 10 && time.getMinutes() < 10
+                          ? '0' + time.getHours() + ' : 0' + time.getMinutes()
+                          : time.getHours() + ' : ' + time.getMinutes()
+                        : 'Hạn thời gian'}
+                    </Text>
+                  </Flex>
+                </TouchableOpacity>
+                <DateTimePickerModal
+                  isVisible={isTimePickerVisible}
+                  date={time}
+                  mode="time"
+                  is24Hour={true}
+                  onDateChange={dt => {
+                    setTime(dt);
+                    setdueDateTime(
+                      dueDate.getFullYear() +
+                        '-' +
+                        (dueDate.getMonth() + 1) +
+                        '-' +
+                        dueDate.getDate() +
+                        ' ' +
+                        dt.getHours() +
+                        ':' +
+                        dt.getMinutes() +
+                        ':00 +07:00',
+                    );
+                    console.log(dt);
+                    seterr('');
                   }}
-                  disabled={false}
+                  onConfirm={handleTimeConfirm}
+                  onCancel={hideTimePicker}
                 />
               </Flex.Item>
             </Flex>
@@ -458,18 +988,20 @@ export default function AddTask({route, navigation}) {
                   transparent
                   style={{marginLeft: 10}}
                   onPress={pickImageHandler}>
-                  <Text style={{color: 'green', fontSize: 18}}>Photo</Text>
+                  <Text style={{color: '#0099FF', fontSize: 16}}>
+                    Ảnh minh họa
+                  </Text>
                 </Button>
               </View>
             </Flex>
           </Card>
           {loading === false && (
             <View style={[styles.container, styles.horizontal]}>
-              <ActivityIndicator size="large" color="green" />
+              <ActivityIndicator size="large" color="#0099FF" />
             </View>
           )}
           {loading === true && (
-            <View>
+            <Card style={{margin: 5, marginTop: 0, marginBottom: 0}}>
               <Flex justify="around">
                 {image.uri ? (
                   <Image
@@ -482,52 +1014,83 @@ export default function AddTask({route, navigation}) {
                   <WhiteSpace />
                 )}
               </Flex>
-            </View>
+            </Card>
           )}
+          <Card
+            style={{
+              margin: 5,
+              elevation: 5,
+            }}>
+            <InputItem
+              clear
+              type="number"
+              placeholder="Nếu không hoàn thành"
+              value={penalty ? penalty.toString() : penalty}
+              style={{
+                fontSize: 16,
+                marginTop: 2,
+                minWidth: 10,
+                marginLeft: 30,
+              }}
+              onChangeText={value => {
+                if (
+                  Number.isNaN(parseInt(value, 10)) ||
+                  parseInt(value, 10) < 0
+                ) {
+                  setpenalty(null);
+                } else {
+                  setpenalty(parseInt(value, 10));
+                }
+              }}>
+              <View style={{width: 120}}>
+                <Flex justify="start" align="center">
+                  <View>
+                    <Icon name="frown" color="red" style={{marginLeft: -9}} />
+                  </View>
+                  <Flex.Item>
+                    <Text
+                      style={{fontSize: 16, marginLeft: 5, color: '#0099FF'}}>
+                      Điểm phạt:
+                    </Text>
+                  </Flex.Item>
+                </Flex>
+              </View>
+            </InputItem>
+          </Card>
 
-          <Card style={{margin: 5}}>
-            <Label style={{color: 'green', marginLeft: 5}}>Note:</Label>
+          <Card style={{margin: 5, elevation: 5}}>
+            <Label style={{color: '#0099FF', marginLeft: 5}}>Ghi chú:</Label>
             <TextareaItem
               rows={4}
               style={{
                 borderStyle: 'solid',
-                borderColor: 'green',
+                borderColor: '#0099FF',
                 borderWidth: 1,
                 margin: 5,
               }}
-              placeholder="Write a note"
+              placeholder="Viết ghi chú vào đây"
               defaultValue={note}
               onChangeText={value => {
                 setNote(value);
-                setNoti('');
+                seterr('');
               }}
               count={150}
             />
           </Card>
-          {/* {noti === 'Add New Task Successfully!' && (
-            <Flex
-              justify="center"
-              style={{backgroundColor: 'green', margin: 5, padding: 5}}>
-              <Text style={{color: 'white', height: 20, fontSize: 16}}>
-                {noti}
-              </Text>
-            </Flex>
-          )} */}
-          {noti === 'Add New Task Failed!' && (
-            <Flex
-              justify="center"
-              style={{backgroundColor: 'red', margin: 5, padding: 5}}>
-              <Text style={{color: 'white', height: 20, fontSize: 16}}>
-                {noti}
-              </Text>
-            </Flex>
+          {err !== '' && (
+            <Text style={{color: 'red', fontSize: 17, margin: 10}}>{err}</Text>
           )}
           <Button
             full
-            success
-            style={{margin: 5}}
-            onPress={() => handleAddTask()}>
-            <Text style={{color: 'white', fontSize: 20}}>Add New Task</Text>
+            default
+            style={{margin: 5, backgroundColor: '#0099FF', elevation: 5}}
+            onPress={() => {
+              console.log(RStartTime);
+              handleAddTask();
+            }}>
+            <Text style={{color: 'white', fontSize: 20}}>
+              Thêm mới công việc
+            </Text>
           </Button>
         </WingBlank>
       </ScrollView>

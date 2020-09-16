@@ -19,11 +19,11 @@ export default function Register({navigation}) {
     uri: 'http://getdrawings.com/free-icon-bw/gta-v-icon-22.jpg',
   });
   const [loading, setLoading] = useState(null);
-  const [err, seterr] = useState(null);
+  const [err, seterr] = useState('');
   const [nameFamily, setnameFamily] = useState('');
   const [password, setpassword] = useState('');
   const [confirmPassword, setconfirmPassword] = useState('');
-
+  console.disableYellowBox = true;
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -91,153 +91,155 @@ export default function Register({navigation}) {
         flex: 1,
         alignContent: 'center',
         justifyContent: 'center',
-        margin: 35,
+        backgroundColor: 'white',
       }}>
-      <Flex justify="center">
-        <Text
-          style={{
-            fontSize: 30,
-            color: 'gray',
-            fontWeight: '100',
-            marginBottom: 20,
-          }}>
-          Create Family
-        </Text>
-      </Flex>
-      <Flex justify="center">
-        {loading === false && (
-          <View style={[styles.container, styles.horizontal]}>
-            <ActivityIndicator size="large" color="green" />
-          </View>
-        )}
-        {(loading === true || loading === null) && (
-          <TouchableOpacity onPress={pickImageHandler}>
-            <Image
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
-                borderColor: 'gray',
-                borderWidth: 1,
-                margin: 10,
-              }}
-              source={{
-                uri: imageF.uri,
-              }}
-            />
-          </TouchableOpacity>
-        )}
-      </Flex>
-      <View
-        style={{
-          borderWidth: 1,
-          borderColor: '#CCCCCC',
-          margin: 10,
-          padding: 5,
-        }}>
-        <InputItem
-          clear
-          placeholder="Name of your family"
-          style={{fontSize: 18}}
-          defaultValue={nameFamily}
-          onChangeText={value => {
-            setnameFamily(value);
-            seterr(null);
-          }}>
-          <Flex align="center">
-            <Icon name="user" color="gray" />
-          </Flex>
-        </InputItem>
-      </View>
-
-      <View
-        style={{
-          borderWidth: 1,
-          borderColor: '#CCCCCC',
-          margin: 10,
-          padding: 5,
-        }}>
-        <InputItem
-          required
-          clear
-          type="password"
-          placeholder="Set family's password"
-          style={{fontSize: 18}}
-          defaultValue={password}
-          onChangeText={value => {
-            setpassword(value);
-            seterr(null);
-          }}>
-          <Flex align="center">
-            <Icon name="lock" color="gray" />
-          </Flex>
-        </InputItem>
-      </View>
-      <View
-        style={{
-          borderWidth: 1,
-          borderColor: '#CCCCCC',
-          margin: 10,
-          padding: 5,
-        }}>
-        <InputItem
-          clear
-          type="password"
-          placeholder="Confirm family's password"
-          style={{fontSize: 18}}
-          defaultValue={confirmPassword}
-          onChangeText={value => {
-            setconfirmPassword(value);
-            seterr(null);
-          }}>
-          <Flex align="center">
-            <Icon name="lock" color="gray" />
-          </Flex>
-        </InputItem>
-      </View>
-      {err !== null && (
-        <Text style={{fontSize: 18, color: 'red', margin: 10}}>{err}</Text>
-      )}
-      <Flex justify="between" style={{marginTop: 20}}>
-        <Flex.Item>
-          <Button
-            onPress={() => navigation.goBack()}
-            full
+      <View style={{margin: 35}}>
+        <Flex justify="center">
+          <Text
             style={{
-              margin: 10,
-              marginTop: 10,
-              backgroundColor: '#A9A9A9', //5D6266
-              color: '#5D6266',
+              fontSize: 30,
+              color: 'gray',
+              fontWeight: '100',
+              marginBottom: 20,
             }}>
-            Back
-          </Button>
-        </Flex.Item>
-        <Flex.Item>
-          <Button
-            full
-            type="primary"
-            style={{margin: 10, marginTop: 10}}
-            onPress={() => {
-              if (
-                nameFamily === '' ||
-                password === '' ||
-                confirmPassword === ''
-              ) {
-                seterr('Các trường không được bỏ trống');
-              } else if (password !== confirmPassword) {
-                seterr('Nhập lại mật khẩu không đúng');
-              } else {
-                navigation.navigate('NewFamily', {
-                  nameFamily,
-                  password,
-                  imageF,
-                });
-              }
+            Tạo mới gia đình
+          </Text>
+        </Flex>
+        <Flex justify="center">
+          {loading === false && (
+            <View style={[styles.container, styles.horizontal]}>
+              <ActivityIndicator size="large" color="green" />
+            </View>
+          )}
+          {(loading === true || loading === null) && (
+            <TouchableOpacity onPress={pickImageHandler}>
+              <Image
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  borderColor: 'gray',
+                  borderWidth: 1,
+                  margin: 10,
+                }}
+                source={{
+                  uri: imageF.uri,
+                }}
+              />
+            </TouchableOpacity>
+          )}
+        </Flex>
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: '#CCCCCC',
+            margin: 10,
+            padding: 5,
+          }}>
+          <InputItem
+            clear
+            placeholder="Tên gia đình"
+            style={{fontSize: 16}}
+            defaultValue={nameFamily}
+            onChangeText={value => {
+              setnameFamily(value);
+              seterr(null);
             }}>
-            Next
-          </Button>
-        </Flex.Item>
-      </Flex>
+            <Flex align="center">
+              <Icon name="user" color="gray" />
+            </Flex>
+          </InputItem>
+        </View>
+
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: '#CCCCCC',
+            margin: 10,
+            padding: 5,
+          }}>
+          <InputItem
+            required
+            clear
+            type="password"
+            placeholder="Nhập mật khẩu gia đình"
+            style={{fontSize: 16}}
+            defaultValue={password}
+            onChangeText={value => {
+              setpassword(value);
+              seterr(null);
+            }}>
+            <Flex align="center">
+              <Icon name="lock" color="gray" />
+            </Flex>
+          </InputItem>
+        </View>
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: '#CCCCCC',
+            margin: 10,
+            padding: 5,
+          }}>
+          <InputItem
+            clear
+            type="password"
+            placeholder="Nhập lại mật khẩu gia đình"
+            style={{fontSize: 16}}
+            defaultValue={confirmPassword}
+            onChangeText={value => {
+              setconfirmPassword(value);
+              seterr(null);
+            }}>
+            <Flex align="center">
+              <Icon name="lock" color="gray" />
+            </Flex>
+          </InputItem>
+        </View>
+        {err !== '' && (
+          <Text style={{fontSize: 16, color: 'red', margin: 10}}>{err}</Text>
+        )}
+        <Flex justify="between" style={{marginTop: 20}}>
+          <Flex.Item>
+            <Button
+              onPress={() => navigation.goBack()}
+              full
+              style={{
+                margin: 10,
+                marginTop: 10,
+                backgroundColor: '#A9A9A9', //5D6266
+                color: '#5D6266',
+              }}>
+              Back
+            </Button>
+          </Flex.Item>
+          <Flex.Item>
+            <Button
+              full
+              type="primary"
+              style={{margin: 10, marginTop: 10}}
+              onPress={() => {
+                if (
+                  nameFamily === '' ||
+                  password === '' ||
+                  confirmPassword === ''
+                ) {
+                  seterr('Các trường không được bỏ trống');
+                } else if (password !== confirmPassword) {
+                  seterr('Nhập lại mật khẩu không đúng');
+                } else {
+                  navigation.navigate('NewFamily', {
+                    nameFamily,
+                    password,
+                    imageF,
+                  });
+                }
+              }}>
+              Next
+            </Button>
+          </Flex.Item>
+        </Flex>
+      </View>
     </View>
   );
 }

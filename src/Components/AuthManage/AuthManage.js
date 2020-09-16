@@ -8,6 +8,7 @@ import {View} from 'react-native';
 import Login from '../Login/Login';
 import Register from '../Register/Register';
 import NewFamily from '../Register/NewFamily';
+import ForgotPassword from '../ForgotPassword/ForgotPassword';
 
 export default function AuthManage(props) {
   const Stack = createStackNavigator();
@@ -17,11 +18,12 @@ export default function AuthManage(props) {
         <Stack.Screen
           name="Login"
           component={Login}
-          options={({navigation}) => ({
-            headerTitle: () => (
-              <View style={{backgroundColor: 'transparent'}} />
-            ),
-          })}
+          options={{headerShown: false}}
+          // options={({navigation}) => ({
+          //   headerTitle: () => (
+          //     <View style={{backgroundColor: 'transparent'}} />
+          //   ),
+          // })}
           initialParams={{
             AuthContext: props.AuthContext,
           }}
@@ -29,19 +31,28 @@ export default function AuthManage(props) {
         <Stack.Screen
           name="Register"
           component={Register}
-          options={({navigation}) => ({
-            headerTitle: () => <View />,
-          })}
+          options={{headerShown: false}}
+          // options={({navigation}) => ({
+          //   headerTitle: () => <View />,
+          // })}
         />
         <Stack.Screen
           name="NewFamily"
           component={NewFamily}
-          options={({navigation}) => ({
-            headerTitle: () => <View />,
-          })}
+          // options={({navigation}) => ({
+          //   headerTitle: () => <View />,
+          // })}
+          options={{headerShown: false}}
           initialParams={{
             AuthContext: props.AuthContext,
           }}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
+          options={({navigation}) => ({
+            headerTitle: () => <View />,
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>

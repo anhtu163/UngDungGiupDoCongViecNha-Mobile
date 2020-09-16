@@ -1,14 +1,15 @@
-import React, {useState} from 'react';
+import React from 'react';
 // import {Provider} from 'react-redux';
 import AuthManage from './src/Components/AuthManage/AuthManage';
 import Home from './src/Components/Home/Home';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFetchBlob from 'react-native-fetch-blob';
+import {Modal} from '@ant-design/react-native';
 
 const AuthContext = React.createContext();
 // const store = createStore(myReducer);
 
-export default function App({navigation}) {
+export default function App() {
   // const [isLogin, setisLogin] = useState(false);
   const [state, dispatch] = React.useReducer(
     (prevState, action) => {
@@ -16,26 +17,23 @@ export default function App({navigation}) {
         case 'RESTORE_TOKEN':
           return {
             ...prevState,
-            userToken: action.token,
+            userToken: action.data.token,
             isLoading: false,
           };
         case 'SIGN_IN':
           return {
             ...prevState,
-            isSignout: false,
-            userToken: action.token,
+            userToken: action.data.token,
           };
         case 'SIGN_OUT':
           return {
             ...prevState,
-            isSignout: true,
             userToken: null,
           };
       }
     },
     {
       isLoading: true,
-      isSignout: true,
       userToken: null,
     },
   );
@@ -43,19 +41,23 @@ export default function App({navigation}) {
     // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
       let userToken;
-
       try {
+        // userToken = AsyncStorage.getItem('userToken');
+        // u = AsyncStorage.getItem('user');
+        // [userToken, u] = await Promise.all([
         userToken = await AsyncStorage.getItem('userToken');
+        //AsyncStorage.getItem('user'),
+        //]);
       } catch (e) {
         // Restoring token failed
         console.log(e);
       }
-      console.log('token: ' + userToken);
+      dispatch({type: 'RESTORE_TOKEN', data: {token: userToken}});
+
       // After restoring token, we may need to validate it in production apps
 
       // This will switch to the App screen or Auth screen and this loading
       // screen will be unmounted and thrown away.
-      dispatch({type: 'RESTORE_TOKEN', token: userToken});
     };
 
     bootstrapAsync();
@@ -83,27 +85,31 @@ export default function App({navigation}) {
           JSON.stringify(dt),
         ).then(async res => {
           const t = res.json();
-          console.log(t.user);
           if (t.code === 2020) {
-            state.userToken = t.token;
-            state.isSignout = false;
             try {
-              await AsyncStorage.setItem('userToken', state.userToken);
-              await AsyncStorage.setItem('isSignout', state.isSignout);
+              await AsyncStorage.setItem('userToken', t.token);
             } catch (error) {
-              // Error retrieving data
               console.log(error.message);
             }
-            //console.log('Token từ App: ' + state.userToken);
-            // navigation.setParams({isLogin: true});
-            // navigation.goBack();
-            dispatch({type: 'SIGN_IN', token: state.userToken});
+            dispatch({
+              type: 'SIGN_IN',
+              data: {token: t.token},
+            });
           } else {
-            console.log('Lỗi');
+            data.seterr(t.message);
+            console.log(t.message);
           }
         });
       },
-      signOut: () => dispatch({type: 'SIGN_OUT'}),
+      signOut: async () => {
+        try {
+          await AsyncStorage.removeItem('userToken');
+        } catch (error) {
+          // Error retrieving data
+          console.log(error.message);
+        }
+        dispatch({type: 'SIGN_OUT'});
+      },
       signUp: async data => {
         // In a production app, we need to send user data to server and get a token
         // We will also need to handle errors if sign up failed
@@ -115,33 +121,32 @@ export default function App({navigation}) {
           {
             'Content-Type': 'application/json',
           },
-          JSON.stringify(data),
-        ).then(res => {
+          JSON.stringify(data.NewF),
+        ).then(async res => {
           const t = res.json();
-          console.log(t);
           if (t.code === 2020) {
-            state.userToken = t.token;
-            state.isSignout = false;
-            //console.log('Token từ App: ' + state.userToken);
-            // navigation.setParams({isLogin: true});
-            // navigation.goBack();
-            dispatch({type: 'SIGN_IN', token: state.userToken});
+            Modal.alert(
+              'Thông báo',
+              'Vui lòng truy cập vào email để thực hiện kích hoạt tài khoản',
+              [
+                {
+                  text: 'Quay về trang đăng nhập',
+                  onPress: () => data.navigator.navigate('Login'),
+                },
+              ],
+            );
           } else {
-            console.log('Lỗi');
+            data.seterr(t.message);
           }
         });
-
-        // dispatch({type: 'SIGN_IN', token: state.userToken});
       },
     }),
-    [state.isSignout, state.userToken],
+    [],
   );
-  // console.log('Token từ App: ' + state.userToken);
-  const t = state.userToken;
   return (
     <AuthContext.Provider value={authContext}>
       {state.userToken !== null ? (
-        <Home AuthContext={AuthContext} token={t} />
+        <Home AuthContext={AuthContext} token={state.userToken} />
       ) : (
         <AuthManage AuthContext={AuthContext} />
       )}
